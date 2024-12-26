@@ -2,8 +2,6 @@
 <div class="container mt-5">
     <form class="col-6 mx-auto card p-3 shadow-lg" method="post">
         {% csrf_token %}
-        <!-- <input type="hidden" name="csrfmiddlewaretoken" value="CSRF_TOKEN_VALUE"> -->
-
         <input type="hidden" name="action" value="login">
         <h2>Login</h2>
         {% if errors %}
