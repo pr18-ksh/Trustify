@@ -1,0 +1,26 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-light bg-secondary">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="/api/home/?action=home">Home<span class="sr-only">(current)</span></a>
+            </li>
+        </ul>
+        {% if request.user.is_authenticated %}
+        <div class="d-flex align-items-center">
+            <a href="{% url 'profile_manage' %}">
+                {% if request.user.userprofile.profile_picture %}
+                <img src="{{ request.user.userprofile.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                {% else %}
+                <img src="{% static 'default-avatar.jpg' %}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                {% endif %}
+            </a>
+            <a href="/api/logout/?action=logout" class="btn btn-outline-success ms-3" type="submit">Logout</a>
+        </div>
+        {% else %}
+        <a href="/api/login/?action=login" class="btn btn-outline-success" type="submit">Login</a> {% endif %}
+    </div>
+</nav>

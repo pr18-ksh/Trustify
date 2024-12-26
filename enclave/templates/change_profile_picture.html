@@ -1,0 +1,13 @@
+{% extends 'prbase.html' %} {% block title %}Change Profile Picture{% endblock %} {% block content %}
+<h2>Change Profile Picture</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="profile_picture" class="form-label">Choose a new profile picture</label>
+        <input type="file" class="form-control" id="profile_picture" name="profile_picture">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>
+{% endblock %}

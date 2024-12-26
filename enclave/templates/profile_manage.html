@@ -1,0 +1,40 @@
+{% extends "prbase.html" %} {% block title %}Profile Management{% endblock %} {% block content %}
+<div class="d-flex" style="flex-direction: row; width: 123%;">
+    <!-- Main Content -->
+    <div class="p-4" style="flex-grow: 1;">
+        <h2>Welcome to Profile Management</h2>
+        <p>Choose an action from the sidebar.</p>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="bg-secondary p-3 text-white" style="width: 250px; height: 100vh;">
+        <h5 class="text-center">Profile Management</h5>
+        <ul class="list-group mt-4">
+            <li class="list-group-item bg-dark">
+                <a href="{% url 'profile_dashboard' %}" class="text-decoration-none text-white">Profile Dashboard</a>
+            </li>
+            <li class="list-group-item bg-dark">
+                <a href="{% url 'profile_create_or_update' %}" class="text-decoration-none text-white">Create_or_update Profile</a>
+            </li>
+            <li class="list-group-item bg-dark">
+                <a href="{% url 'profile_view' %}" class="text-decoration-none text-white">View Profile</a>
+            </li>
+            <li class="list-group-item bg-dark">
+                <a href="{% url 'profile_edit' %}" class="text-decoration-none text-white">Edit Profile</a>
+            </li>
+            <li class="list-group-item bg-dark">
+                <a href="{% url 'change_profile_picture' %}" class="text-decoration-none text-white">Change Profile Picture</a>
+            </li>
+            <li class="list-group-item bg-dark">
+                <a href="{% url 'delete_profile_picture' %}" class="text-decoration-none text-white">Delete Profile Picture</a>
+            </li>
+            <li class="list-group-item bg-dark">
+                <a href="{% url 'change_password' %}?action=change_password" class="text-decoration-none text-white">Change Password</a>
+            </li>
+            <li class="list-group-item bg-dark">
+                <a href="/api/logout/?action=logout" class="text-decoration-none text-danger">Logout</a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

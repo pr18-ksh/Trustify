@@ -1,0 +1,56 @@
+{% extends 'prbase.html' %} {% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center">
+            {% if user_profile %} Update Your Profile {% else %} Create Your Profile {% endif %}
+        </h2>
+        <hr>
+
+        <!-- Display User Profile Details -->
+        {% if user_profile %}
+        <div class="profile-display mb-4">
+            <h4>User Profile Details</h4>
+            <p><strong>Bio:</strong> {{ user_profile.bio }}</p>
+            <p><strong>Date of Birth:</strong> {{ user_profile.date_of_birth|date:"F d, Y" }}</p>
+            <p>
+                <strong>Profile Picture:</strong> {% if user.userprofile.profile_picture %}
+                <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile Picture" style="max-width: 150px;"> {% else %} No profile picture available. {% endif %}
+            </p>
+        </div>
+
+        {% else %}
+        <p class="text-muted">No profile data available.</p>
+        {% endif %}
+
+        <form method="POST" action="{% url 'profile_create_or_update' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="bio">Bio</label>
+                <textarea class="form-control" id="bio" name="bio" rows="3">
+                    {% if user_profile %}{{ user_profile.bio }}{% endif %}
+                </textarea>
+            </div>
+            <div class="form-group">
+                <label for="date_of_birth">Date of Birth</label>
+                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{% if user_profile %}{{ userprofile.date_of_birth }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label for="profile_picture">Profile Picture</label>
+                <input type="file" class="form-control" id="profile_picture" name="profile_picture"> {% if user_profile.profile_picture %}
+                <h6>Your Current Profile Picture</h6>
+                <small class="form-text text-muted">
+                    <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile Picture" style="max-width: 100px;">
+                </small> {% else %}
+                <small class="form-text text-muted">No profile picture available.</small> {% endif %}
+            </div>
+            <button type="submit" class="btn btn-success w-100">
+                {% if user_profile %} Update Profile {% else %} Create Profile {% endif %}
+            </button>
+        </form>
+        <hr>
+        <div class="text-center mt-4">
+            <a href="{% url 'profile_view' %}" class="btn btn-info w-100">View Profile</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

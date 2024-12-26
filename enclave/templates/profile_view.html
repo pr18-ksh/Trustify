@@ -1,0 +1,21 @@
+{% extends 'prbase.html' %} {% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center">Profile of {{ user.username }}</h2>
+        <hr>
+        <div class="row">
+            <div class="col-md-6">
+                <h4>User Profile</h4>
+                <ul class="list-group">
+                    <li class="list-group-item"><strong>Bio:</strong> {{ user_profile.bio }}</li>
+                    <li class="list-group-item"><strong>Date of Birth:</strong> {{ user_profile.date_of_birth }}</li>
+                    <li class="list-group-item">
+                        <strong>Profile Picture:</strong>{% if user_profile.profile_picture %}
+                        <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile Picture" width="100"> {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %} {% block start %}
+<div class="container mt-5">
+    <form class="col-6 mx-auto card p-3 shadow-lg" method="post">
+        {% csrf_token %}
+        <!-- <input type="hidden" name="csrfmiddlewaretoken" value="CSRF_TOKEN_VALUE"> -->
+
+        <input type="hidden" name="action" value="login">
+        <h2>Login</h2>
+        {% if errors %}
+        <div class="alert alert-danger" role="alert">
+            {% for error in errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}{% if messages %}
+        <div class="alert alert-primary" role="alert">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label for="username">Username:</label>
+            <input type="text" class="form-control" name="username" id="username" placeholder="Enter username">
+        </div>
+        <div class="mb-3">
+            <label for="password">Password:</label>
+            <input type="password" class="form-control" name="password" id="password" placeholder="Enter Password">
+        </div>
+        <p>Don't have an account? <a href="/api/register/?action=register">Register</a></p>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+</div>
+{% endblock %}

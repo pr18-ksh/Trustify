@@ -1,0 +1,80 @@
+{% extends 'base.html' %} {% block start %}
+<div class="container mt-5">
+    <form class="col-6 mx-auto card p-3 shadow-lg" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="register">
+        <h2>Register</h2>
+        <hr> {% if messages %}
+        <div class="alert alert-primary" role="alert">
+            {% for message in messages %} {{ message }} {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label>Firstname :</label>
+            <input type="text" class="form-control" name="first_name" placeholder="Enter firstname"> {% if errors.first_name %}
+            <div class="text-danger">
+                {{ errors.first_name|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label>Lastname :</label>
+            <input type="text" class="form-control" name="last_name" placeholder="Enter lastname"> {% if errors.last_name %}
+            <div class="text-danger">
+                {{ errors.last_name|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label>Username :</label>
+            <input type="text" class="form-control" name="username" placeholder="Enter username"> {% if errors.username %}
+            <div class="text-danger">
+                {{ errors.username|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label>Email :</label>
+            <input type="email" class="form-control" name="email" placeholder="Enter email"> {% if errors.email %}
+            <div class="text-danger">
+                {{ errors.email|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label>Password :</label>
+            <input type="password" class="form-control" name="password" placeholder="Password"> {% if errors.password %}
+            <div class="text-danger">
+                {{ errors.password|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label>Confirm Password :</label>
+            <input type="password" class="form-control" name="password_confirm" placeholder="Confirm Password"> {% if errors.password_confirm %}
+            <div class="text-danger">
+                {{ errors.password_confirm|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label>Mobile Number :</label>
+            <input type="text" class="form-control" name="mobile_number" placeholder="Enter mobile number"> {% if errors.mobile_number %}
+            <div class="text-danger">
+                {{ errors.mobile_number|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <p>Already have an account? <a href="/api/login/?action=login">Login</a></p>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+{% endblock %}
