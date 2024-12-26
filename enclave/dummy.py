@@ -1,8 +1,13 @@
+from django.http import HttpResponse
+from django.shortcuts import redirect, render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 from .serializers import *
 from rest_framework import status
 
@@ -42,6 +47,7 @@ class AuthUserView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # Handle user login and return JWT tokens
+    @login_required
     def login_user(self, request):
         login_serializer = UserLoginSerializer(data=request.data)
         if login_serializer.is_valid():
@@ -102,6 +108,146 @@ class AuthUserView(APIView):
             return Response({'message': 'Password changed successfully', 'token': token}, status=status.HTTP_200_OK)
 
         return Response(changepassword_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@method_decorator(login_required, name='dispatch')
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get(self, request, pk=None):
+        """Handle profile view based on action."""
+        action = request.query_params.get("action")
+        try:
+            if action == "view_profile":
+                if pk:
+                    profile = UserProfile.objects.get(id=pk)
+                else:
+                    profile = UserProfile.objects.get(user=request.user)
+                return render(request, "view_profile.html", {"profile": profile})
+
+            return HttpResponse("Invalid action specified.", status=400)
+
+        except UserProfile.DoesNotExist:
+            return HttpResponse("Profile not found.", status=404)
+
+    def post(self, request):
+        """Handle profile creation."""
+        action = request.query_params.get("action")
+        if action == "create_profile":
+            serializer = UserProfileSerializer(data=request.data, context={"request": request})
+            if serializer.is_valid():
+                serializer.save(user=request.user)
+                return redirect("view_profile")  # Redirect to profile view page
+            return render(request, "create_profile.html", {"errors": serializer.errors})
+        
+        return HttpResponse("Invalid action specified.", status=400)
+
+    def put(self, request, pk=None):
+        """Handle profile updates."""
+        try:
+            profile = UserProfile.objects.get(id=pk) if pk else UserProfile.objects.get(user=request.user)
+            serializer = UserProfileSerializer(profile, data=request.data, partial=True, context={"request": request})
+            if serializer.is_valid():
+                serializer.save()
+                return redirect("view_profile", pk=profile.id)  # Redirect to updated profile
+            return render(request, "update_profile.html", {"profile": profile, "errors": serializer.errors})
+        
+        except UserProfile.DoesNotExist:
+            return HttpResponse("Profile not found.", status=404)
+
+    def delete(self, request, pk=None):
+        """Handle profile deletion."""
+        try:
+            profile = UserProfile.objects.get(id=pk) if pk else UserProfile.objects.get(user=request.user)
+            profile.delete()
+            return redirect("create_profile")  # Redirect to create profile page
+        
+        except UserProfile.DoesNotExist:
+            return HttpResponse("Profile not found.", status=404)
+        
+class UserProfileView(APIView):
+    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]  # To support file uploads
+
+    # @swagger_auto_schema(
+    #     operation_description="Retrieve the user's profile or a specific profile by ID.",
+    #     responses={200: UserProfileSerializer()},
+    #     manual_parameters=[
+    #         openapi.Parameter(
+    #             'Authorization',
+    #             openapi.IN_HEADER,
+    #             description="JWT token for authorization",
+    #             type=openapi.TYPE_STRING
+    #         ),
+    #         openapi.Parameter('pk',openapi.IN_PATH,description="Profile ID (optional)",type=openapi.TYPE_INTEGER),
+    #     ],)
+    def get(self, request, pk=None):
+        """Retrieve the user's profile or a specific profile by ID."""
+        if pk:
+            try:
+                profile = UserProfile.objects.get(id=pk)
+            except UserProfile.DoesNotExist:
+                return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+        serializer = UserProfileSerializer(profile)
+        return Response(serializer.data)
+
+    # @swagger_auto_schema(
+    #     operation_description="Create a new profile with optional profile picture upload.",
+    #     request_body=UserProfileSerializer,
+    #     responses={201: UserProfileSerializer(), 400: "Bad Request"},
+    #     manual_parameters=[
+    #          openapi.Parameter('Authorization', openapi.IN_HEADER, description="JWT token for authorization", type=openapi.TYPE_STRING)
+    #     ]
+    # )
+    def post(self, request):
+        """Create a new profile for the user."""
+
+        serializer = UserProfileSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # @swagger_auto_schema(
+    #     operation_description="Update the user's profile or a specific profile by ID.",
+    #     request_body=UserProfileSerializer,
+    #     responses={200: UserProfileSerializer(), 400: "Bad Request"},
+    # )
+    def put(self, request, pk=None):
+        """Update the user's profile or a specific profile by ID."""
+        try:
+            profile = UserProfile.objects.get(id=pk) if pk else UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # @swagger_auto_schema(
+    #     operation_description="Delete the user's profile or a specific profile by ID.",
+    #     responses={204: "Profile deleted successfully", 404: "Profile not found"},
+    #     manual_parameters=[
+    #         openapi.Parameter('Authorization',openapi.IN_HEADER,description="JWT token for authorization",type=openapi.TYPE_STRING),
+    #         openapi.Parameter('pk',openapi.IN_PATH, description="Profile ID (optional)",type=openapi.TYPE_INTEGER),
+    #     ],
+    # )
+    def delete(self, request, pk=None):
+        """Delete the user's profile or a specific profile by ID."""
+        try:
+            profile = UserProfile.objects.get(id=pk) if pk else UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        profile.delete()
+        return Response({"message": "Profile deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
     
 #  {% extends 'base.html' %} {% block start %}
 # <div class="container mt-5">

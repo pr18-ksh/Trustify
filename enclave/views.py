@@ -21,6 +21,7 @@ from drf_yasg.utils import swagger_auto_schema  # Import the decorator
 from drf_yasg import openapi
 import logging
 logger = logging.getLogger(__name__)
+
 # Helper function to generate token
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -28,7 +29,6 @@ def get_tokens_for_user(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
-
 
 class AuthUserView(APIView):
 
@@ -39,8 +39,8 @@ class AuthUserView(APIView):
             openapi.Parameter('action', openapi.IN_QUERY, description="Action to be performed", type=openapi.TYPE_STRING, enum=['register', 'login', 'change_password', 'logout', 'home'])
         ]
     )
+
     # Handle GET requests
-    # @csrf_exempt
     def get(self, request):
         action = request.GET.get('action')  # Use GET for GET requests
 
@@ -63,7 +63,6 @@ class AuthUserView(APIView):
         
         return Response({'message': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
 
-
     @swagger_auto_schema(
         operation_description="Handles user registration, login, logout, password change, and home actions.",
         request_body=openapi.Schema(
@@ -83,8 +82,8 @@ class AuthUserView(APIView):
             openapi.Parameter('action', openapi.IN_QUERY, description="Action to be performed", type=openapi.TYPE_STRING, enum=['register', 'login', 'change_password', 'logout', 'home'])
         ]
     )
+    
     # Handle POST requests
-    # @csrf_exempt
     def post(self, request):
         action = request.data.get('action')  # Use data for POST requests
 
@@ -105,15 +104,7 @@ class AuthUserView(APIView):
     
 
         return Response({'message': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
-
-    # @swagger_auto_schema(
-    #     operation_description="Register a new user",
-    #     request_body=UserRegistrationSerializer,
-    #     responses={200: openapi.Response(description="User registered successfully")},
-    #     manual_parameters=[
-    #         openapi.Parameter('action', openapi.IN_QUERY, description="Action to be performed", type=openapi.TYPE_STRING, enum=['register'])
-    #     ]
-    # )
+    
     @swagger_auto_schema(
         operation_description="Register a new user.",
         request_body=UserRegistrationSerializer,
@@ -128,14 +119,6 @@ class AuthUserView(APIView):
             return redirect('/api/login/?action=login')  
         return render(request, 'register.html', {'errors': serializer.errors})
 
-    # @swagger_auto_schema(
-    #     operation_description="User login with username and password.",
-    #     request_body=UserLoginSerializer,
-    #     responses={200: openapi.Response(description="Login successful")},
-    #     manual_parameters=[
-    #         openapi.Parameter('action', openapi.IN_QUERY, description="Action to be performed", type=openapi.TYPE_STRING, enum=['login'])
-    #     ]
-    # )
     @swagger_auto_schema(
         operation_description="Login an existing user.",
         request_body=UserLoginSerializer,
@@ -161,32 +144,17 @@ class AuthUserView(APIView):
                 logger.debug(f"Authenticating user: {username}")
 
                 user = get_object_or_404(CustomUser, username=validated_data['username'])
-                # user = CustomUser.objects.get(username=validated_data['username'])
-                # user = authenticate(username=username, password=password)
+    
                 if user is None:
                     return render(request, 'login.html', {'errors': ["Invalid username or password."]})
 
                 login(request, user)
-                # token = get_tokens_for_user(user)
     
                 return render(request, 'home.html', {'message': "Login successful"})
         else:
             
             return render(request, 'login.html', {'errors': ["Invalid username or password."]})
 
-
-    # @swagger_auto_schema(
-    #     operation_description="Log out the user and invalidate the refresh token.",
-    #     request_body=openapi.Schema(
-    #         type=openapi.TYPE_OBJECT,
-    #         properties={'refresh_token': openapi.Schema(type=openapi.TYPE_STRING)},
-    #         required=['refresh_token']
-    #     ),
-    #     responses={200: openapi.Response(description="Logout successful")},
-    #     manual_parameters=[
-    #         openapi.Parameter('refresh_token', openapi.IN_BODY, description="The refresh token to invalidate", type=openapi.TYPE_STRING)
-    #     ]
-    # )
     @swagger_auto_schema(
         operation_description="Log out the user and invalidate the refresh token.",
         request_body=LogoutSerializer,
@@ -204,14 +172,6 @@ class AuthUserView(APIView):
         logout(request)  # End session
         return redirect('/api/login/?action=login')
 
-    # @swagger_auto_schema(
-    #     operation_description="Change the user's password.",
-    #     request_body=PasswordChangeSerializer,
-    #     responses={200: openapi.Response(description="Password changed successfully")},
-    #     manual_parameters=[
-    #         openapi.Parameter('action', openapi.IN_QUERY, description="Action to be performed", type=openapi.TYPE_STRING, enum=['change_password'])
-    #     ]
-    # )
     @swagger_auto_schema(
         operation_description="Change the user's password.",
         request_body=PasswordChangeSerializer,
@@ -457,146 +417,8 @@ def profile_dashboard(request):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'mobile_number': user.mobile_number,
-        #     'profile_picture': user.userprofile.profile_picture.url if user.userprofile.profile_picture else None,
         },'token': token
     })
 
-# @method_decorator(login_required, name='dispatch')
-# class UserProfileView(APIView):
-#     permission_classes = [IsAuthenticated]
-#     parser_classes = [MultiPartParser, FormParser]
 
-#     def get(self, request, pk=None):
-#         """Handle profile view based on action."""
-#         action = request.query_params.get("action")
-#         try:
-#             if action == "view_profile":
-#                 if pk:
-#                     profile = UserProfile.objects.get(id=pk)
-#                 else:
-#                     profile = UserProfile.objects.get(user=request.user)
-#                 return render(request, "view_profile.html", {"profile": profile})
-
-#             return HttpResponse("Invalid action specified.", status=400)
-
-#         except UserProfile.DoesNotExist:
-#             return HttpResponse("Profile not found.", status=404)
-
-#     def post(self, request):
-#         """Handle profile creation."""
-#         action = request.query_params.get("action")
-#         if action == "create_profile":
-#             serializer = UserProfileSerializer(data=request.data, context={"request": request})
-#             if serializer.is_valid():
-#                 serializer.save(user=request.user)
-#                 return redirect("view_profile")  # Redirect to profile view page
-#             return render(request, "create_profile.html", {"errors": serializer.errors})
-        
-#         return HttpResponse("Invalid action specified.", status=400)
-
-#     def put(self, request, pk=None):
-#         """Handle profile updates."""
-#         try:
-#             profile = UserProfile.objects.get(id=pk) if pk else UserProfile.objects.get(user=request.user)
-#             serializer = UserProfileSerializer(profile, data=request.data, partial=True, context={"request": request})
-#             if serializer.is_valid():
-#                 serializer.save()
-#                 return redirect("view_profile", pk=profile.id)  # Redirect to updated profile
-#             return render(request, "update_profile.html", {"profile": profile, "errors": serializer.errors})
-        
-#         except UserProfile.DoesNotExist:
-#             return HttpResponse("Profile not found.", status=404)
-
-#     def delete(self, request, pk=None):
-#         """Handle profile deletion."""
-#         try:
-#             profile = UserProfile.objects.get(id=pk) if pk else UserProfile.objects.get(user=request.user)
-#             profile.delete()
-#             return redirect("create_profile")  # Redirect to create profile page
-        
-#         except UserProfile.DoesNotExist:
-#             return HttpResponse("Profile not found.", status=404)
-        
-# class UserProfileView(APIView):
-#     # authentication_classes = [JWTAuthentication]
-#     permission_classes = [IsAuthenticated]
-#     parser_classes = [MultiPartParser, FormParser]  # To support file uploads
-
-#     @swagger_auto_schema(
-#         operation_description="Retrieve the user's profile or a specific profile by ID.",
-#         responses={200: UserProfileSerializer()},
-#         manual_parameters=[
-#             openapi.Parameter(
-#                 'Authorization',
-#                 openapi.IN_HEADER,
-#                 description="JWT token for authorization",
-#                 type=openapi.TYPE_STRING
-#             ),
-#             openapi.Parameter('pk',openapi.IN_PATH,description="Profile ID (optional)",type=openapi.TYPE_INTEGER),
-#         ],)
-#     def get(self, request, pk=None):
-#         """Retrieve the user's profile or a specific profile by ID."""
-#         if pk:
-#             try:
-#                 profile = UserProfile.objects.get(id=pk)
-#             except UserProfile.DoesNotExist:
-#                 return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
-#         else:
-#             profile, created = UserProfile.objects.get_or_create(user=request.user)
-
-#         serializer = UserProfileSerializer(profile)
-#         return Response(serializer.data)
-
-#     @swagger_auto_schema(
-#         operation_description="Create a new profile with optional profile picture upload.",
-#         request_body=UserProfileSerializer,
-#         responses={201: UserProfileSerializer(), 400: "Bad Request"},
-#         manual_parameters=[
-#              openapi.Parameter('Authorization', openapi.IN_HEADER, description="JWT token for authorization", type=openapi.TYPE_STRING)
-#         ]
-#     )
-#     def post(self, request):
-#         """Create a new profile for the user."""
-
-#         serializer = UserProfileSerializer(data=request.data, context={'request': request})
-#         if serializer.is_valid():
-#             serializer.save(user=request.user)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     @swagger_auto_schema(
-#         operation_description="Update the user's profile or a specific profile by ID.",
-#         request_body=UserProfileSerializer,
-#         responses={200: UserProfileSerializer(), 400: "Bad Request"},
-#     )
-#     def put(self, request, pk=None):
-#         """Update the user's profile or a specific profile by ID."""
-#         try:
-#             profile = UserProfile.objects.get(id=pk) if pk else UserProfile.objects.get(user=request.user)
-#         except UserProfile.DoesNotExist:
-#             return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
-
-#         serializer = UserProfileSerializer(profile, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     @swagger_auto_schema(
-#         operation_description="Delete the user's profile or a specific profile by ID.",
-#         responses={204: "Profile deleted successfully", 404: "Profile not found"},
-#         manual_parameters=[
-#             openapi.Parameter('Authorization',openapi.IN_HEADER,description="JWT token for authorization",type=openapi.TYPE_STRING),
-#             openapi.Parameter('pk',openapi.IN_PATH, description="Profile ID (optional)",type=openapi.TYPE_INTEGER),
-#         ],
-#     )
-#     def delete(self, request, pk=None):
-#         """Delete the user's profile or a specific profile by ID."""
-#         try:
-#             profile = UserProfile.objects.get(id=pk) if pk else UserProfile.objects.get(user=request.user)
-#         except UserProfile.DoesNotExist:
-#             return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
-
-#         profile.delete()
-#         return Response({"message": "Profile deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
